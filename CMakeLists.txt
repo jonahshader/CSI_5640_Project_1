@@ -17,7 +17,11 @@ FetchContent_MakeAvailable(SDL2)
 
 # TODO: imgui?
 
-add_executable(cellular_automata src/main.cpp)
+add_executable(cellular_automata src/main.cpp
+  src/systems/render_state.cpp
+  src/systems/render_state.h
+  src/systems/types.h
+)
 
 # Link libraries
 target_link_libraries(cellular_automata PRIVATE
