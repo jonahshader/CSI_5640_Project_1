@@ -5,6 +5,7 @@
 namespace ca
 {
   using cell_t = std::uint8_t;
+  using neighbors_t = std::uint8_t;
 
   struct World {
     cell_t *state;

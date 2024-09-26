@@ -21,6 +21,8 @@ add_executable(cellular_automata src/main.cpp
   src/systems/render_state.cpp
   src/systems/render_state.h
   src/systems/types.h
+  src/systems/update_state.cpp
+  src/systems/update_state.h
 )
 
 # Link libraries
