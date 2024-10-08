@@ -23,6 +23,10 @@ add_executable(cellular_automata src/main.cpp
   src/systems/types.h
   src/systems/update_state.cpp
   src/systems/update_state.h
+  src/systems/run_benchmark.cpp
+  src/systems/run_benchmark.h
+  src/systems/benchmark.h
+  src/systems/benchmark.cpp
 )
 
 # Link libraries
