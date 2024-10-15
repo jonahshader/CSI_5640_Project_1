@@ -28,6 +28,10 @@ namespace ca
         state.push_back(dis(gen));
       }
     }
+
+    unsigned long get_mem_size() {
+      return width * height * sizeof(cell_t) + 2 * sizeof(int);
+    }
   };
 
 }
