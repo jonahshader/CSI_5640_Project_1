@@ -12,7 +12,7 @@ constexpr int SCREEN_WIDTH = 800;
 constexpr int SCREEN_HEIGHT = 600;
 constexpr int CELL_SIZE = 4;
 
-int main(int argc, char *argv[]) {
+void preview() {
   // test render_state
 
   // initialize SDL
@@ -51,5 +51,9 @@ int main(int argc, char *argv[]) {
     // present the renderer
     SDL_RenderPresent(renderer);
   }
+}
+
+int main(int argc, char *argv[]) {
+  preview();
   return 0;
 }
