@@ -1,8 +1,26 @@
 cmake_minimum_required(VERSION 3.28)
-project(cellular_automata CXX)
+project(cellular_automata C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Enable OpenACC
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # Check GCC version as OpenACC support requires GCC 5.0+
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
+        message(FATAL_ERROR "GCC version must be at least 5.0 for OpenACC support")
+    endif()
+
+    # Add OpenACC flags for GCC
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenacc")
+
+    # Optional: Add optimization flags that work well with OpenACC
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+
+    message(STATUS "Configured OpenACC support for GCC")
+else()
+    message(WARNING "OpenACC support is currently configured only for GNU C++ compiler. Detected compiler: ${CMAKE_CXX_COMPILER_ID}. OpenACC flags will not be added.")
+endif()
 
 # Include FetchContent for downloading dependencies
 include(FetchContent)
@@ -23,6 +41,10 @@ add_executable(cellular_automata src/main.cpp
   src/systems/types.h
   src/systems/update_state.cpp
   src/systems/update_state.h
+  src/systems/run_benchmarks.cpp
+  src/systems/run_benchmarks.h
+  src/systems/benchmark.h
+  src/systems/benchmark.cpp
 )
 
 # Link libraries

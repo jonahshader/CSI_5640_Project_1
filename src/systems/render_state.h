@@ -4,9 +4,8 @@
 
 #include "types.h"
 
-namespace ca
-{
+namespace ca {
 
-  void render_state(World &world, SDL_Renderer *renderer, SDL_Window *window);
+void render_state(World &world, SDL_Renderer *renderer, SDL_Window *window);
 
 }
