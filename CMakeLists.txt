@@ -10,13 +10,13 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
         message(FATAL_ERROR "GCC version must be at least 5.0 for OpenACC support")
     endif()
-    
+
     # Add OpenACC flags for GCC
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenacc")
-    
+
     # Optional: Add optimization flags that work well with OpenACC
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
-    
+
     message(STATUS "Configured OpenACC support for GCC")
 else()
     message(WARNING "OpenACC support is currently configured only for GNU C++ compiler. Detected compiler: ${CMAKE_CXX_COMPILER_ID}. OpenACC flags will not be added.")
