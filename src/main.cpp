@@ -7,6 +7,7 @@
 #include "systems/types.h"
 #include "systems/render_state.h"
 #include "systems/update_state.h"
+#include "systems/run_benchmarks.h"
 
 constexpr int SCREEN_WIDTH = 800;
 constexpr int SCREEN_HEIGHT = 600;
@@ -54,6 +55,7 @@ void preview() {
 }
 
 int main(int argc, char *argv[]) {
-  preview();
+  // preview();
+  run_benchmarks();
   return 0;
 }
