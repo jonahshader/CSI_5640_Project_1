@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include <SDL.h>
+#include <openacc.h>
 #include <random>
 
 #include "systems/types.h"
@@ -55,6 +56,10 @@ void preview() {
 }
 
 int main(int argc, char *argv[]) {
+  // At the start of your program
+  if (acc_get_device_type() != acc_device_nvidia) {
+      std::cerr << "No GPU device found" << std::endl;
+  }
   // preview();
   run_benchmarks();
   return 0;

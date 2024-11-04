@@ -11,11 +11,27 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         message(FATAL_ERROR "GCC version must be at least 5.0 for OpenACC support")
     endif()
 
-    # Add OpenACC flags for GCC
+    # Base OpenACC flags
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenacc")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -foffload=nvptx-none")
 
-    # Optional: Add optimization flags that work well with OpenACC
+    # Disable ALL security features that cause issues with GPU offloading
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-stack-protector")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcf-protection=none")
+
+    # Apply the same flags to the offloaded code
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -foffload-options=-fno-stack-protector")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -foffload-options=-fcf-protection=none")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -foffload-options=-misa=sm_80")
+
+    # Optimization flags
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
+
+    # Debug info
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopt-info-optimized-omp")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopt-info-note-omp")
 
     message(STATUS "Configured OpenACC support for GCC")
 else()

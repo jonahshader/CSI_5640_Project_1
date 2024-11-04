@@ -8,10 +8,10 @@
 #include "benchmark.h"
 #include "types.h"
 
-constexpr int WIDTH = 1 << 8;
-constexpr int HEIGHT = 1 << 8;
-constexpr int NUM_JOBS = 1 << 4;
-constexpr int ITERATIONS = 1 << 8;
+constexpr int WIDTH = 1 << 10;
+constexpr int HEIGHT = 1 << 10;
+constexpr int NUM_JOBS = 1 << 5;
+constexpr int ITERATIONS = 1 << 9;
 constexpr unsigned long SEED = 0;
 
 void run_benchmarks() {
@@ -32,10 +32,11 @@ void run_benchmarks() {
   // TODO: verify push_back use
   std::cout << "Initializing benchmarks..." << std::endl;
   std::vector<std::unique_ptr<Benchmark>> benchmarks;
-  benchmarks.push_back(std::make_unique<CPUNaive>());
-  benchmarks.push_back(std::make_unique<CPUOptimized>());
   benchmarks.push_back(std::make_unique<GPUNaive>());
   benchmarks.push_back(std::make_unique<GPUOptimized>());
+  benchmarks.push_back(std::make_unique<CPUNaive>());
+  benchmarks.push_back(std::make_unique<CPUOptimized>());
+
 
   // TODO: verify unique_ptr use
   // run the benchmarks
