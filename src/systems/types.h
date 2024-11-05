@@ -27,9 +27,15 @@ struct World {
     }
   }
 
+  World() = default;
+
   unsigned long get_mem_size() {
     return width * height * sizeof(cell_t) + 2 * sizeof(int);
   }
 };
+
+bool operator==(const World &lhs, const World &rhs);
+
+bool operator!=(const World &lhs, const World &rhs);
 
 } // namespace ca

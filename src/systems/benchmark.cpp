@@ -23,7 +23,7 @@ BenchmarkResult CPUNaive::run(const Job &job) {
   auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
   unsigned long mem_size = read.get_mem_size() + write.get_mem_size();
 
-  BenchmarkResult result(duration.count(), mem_size);
+  BenchmarkResult result(duration.count(), mem_size, read);
   return result;
 }
 
@@ -32,19 +32,20 @@ std::string CPUNaive::get_description() {
 }
 
 BenchmarkResult GPUNaive::run(const Job &job) {
-  ca::cell_t *read_cells =
-      (ca::cell_t *)malloc(job.initial_state.state.size() * sizeof(ca::cell_t));
-  ca::cell_t *write_cells =
-      (ca::cell_t *)malloc(job.initial_state.state.size() * sizeof(ca::cell_t));
-  int width = job.initial_state.width;
-  int height = job.initial_state.height;
+  // allocate memory (on the host) for our two cell arrays
+  auto width = job.initial_state.width;
+  auto height = job.initial_state.height;
+  auto world_size = width * height;
+  ca::cell_t *read_cells = (ca::cell_t *)malloc(world_size * sizeof(ca::cell_t));
+  ca::cell_t *write_cells = (ca::cell_t *)malloc(world_size * sizeof(ca::cell_t));
 
-  // copy initial state
+  // copy initial state to the read buffer
   std::copy(job.initial_state.state.begin(), job.initial_state.state.end(), read_cells);
 
+  // start the timer
   auto start_time = std::chrono::high_resolution_clock::now();
 
-  // Track which buffer has the final result
+  // variable for tracking which buffer has the final result
   ca::cell_t *result_cells = read_cells;
 
 #pragma acc data copy(read_cells[0 : width * height]) create(write_cells[0 : width * height])
@@ -57,23 +58,23 @@ BenchmarkResult GPUNaive::run(const Job &job) {
           int alive_neighbors = 0;
           const int idx = y * width + x;
 
-          // Unroll the neighbor loop manually for better GPU performance
-          // Top row
+          // unrolled the neighbor loop manually for better performance
+          // top row
           alive_neighbors +=
               read_cells[((y - 1 + height) % height) * width + ((x - 1 + width) % width)];
           alive_neighbors += read_cells[((y - 1 + height) % height) * width + x];
           alive_neighbors += read_cells[((y - 1 + height) % height) * width + ((x + 1) % width)];
 
-          // Middle row
+          // middle row
           alive_neighbors += read_cells[y * width + ((x - 1 + width) % width)];
           alive_neighbors += read_cells[y * width + ((x + 1) % width)];
 
-          // Bottom row
+          // bottom row
           alive_neighbors += read_cells[((y + 1) % height) * width + ((x - 1 + width) % width)];
           alive_neighbors += read_cells[((y + 1) % height) * width + x];
           alive_neighbors += read_cells[((y + 1) % height) * width + ((x + 1) % width)];
 
-          // Apply rules
+          // apply the rules of conway's game of life
           write_cells[idx] = (read_cells[idx]) ? (alive_neighbors == 2 || alive_neighbors == 3)
                                                : (alive_neighbors == 3);
         }
@@ -86,22 +87,21 @@ BenchmarkResult GPUNaive::run(const Job &job) {
   auto end_time = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
 
-  // Count live cells in final state (using result_cells pointer)
-  int final_alive = 0;
-  for (int i = 0; i < width * height; i++) {
-    final_alive += result_cells[i];
-  }
-
-  // Calculate memory usage: two cell arrays of width*height size
+  // calculate memory usage: two cell arrays of width*height size
   size_t memory_usage = 2 * width * height * sizeof(ca::cell_t);
 
-  // Clean up the buffer that doesn't have the result
-  ca::cell_t *other_cells = (result_cells == read_cells) ? write_cells : read_cells;
-  free(other_cells);
+  // copy final state into a ca::World instance
+  ca::World final_state;
+  final_state.width = width;
+  final_state.height = height;
+  final_state.state = std::vector<ca::cell_t>(result_cells, result_cells + width * height);
 
-  // Return the result and free its memory
-  BenchmarkResult result(duration.count(), memory_usage);
-  free(result_cells);
+  // build result instance
+  BenchmarkResult result(duration.count(), memory_usage, final_state);
+
+  // free buffers
+  free(read_cells);
+  free(write_cells);
 
   return result;
 }
@@ -112,7 +112,7 @@ std::string GPUNaive::get_description() {
 
 BenchmarkResult CPUOptimized::run(const Job &job) {
   // TODO:
-  BenchmarkResult result(0.0, 0);
+  BenchmarkResult result(0.0, 0, ca::World());
   return result;
 }
 
@@ -122,7 +122,7 @@ std::string CPUOptimized::get_description() {
 
 BenchmarkResult GPUOptimized::run(const Job &job) {
   // TODO:
-  BenchmarkResult result(0.0, 0);
+  BenchmarkResult result(0.0, 0, ca::World());
   return result;
 }
 

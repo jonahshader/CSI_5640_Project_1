@@ -15,6 +15,7 @@ struct Job {
 struct BenchmarkResult {
   double duration{0};
   unsigned long memory_required{0};
+  ca::World final_state;
 };
 
 class Benchmark {
