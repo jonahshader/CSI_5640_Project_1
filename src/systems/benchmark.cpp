@@ -1,3 +1,4 @@
+// Implementation of benchmark.h. See benchmark.h for more details.
 #include "benchmark.h"
 
 #include <chrono>
@@ -5,7 +6,6 @@
 #include "types.h"
 #include "update_state.h"
 
-// TODO: finish
 
 BenchmarkResult CPUNaive::run(const Job &job) {
   // copy initial state
@@ -108,24 +108,4 @@ BenchmarkResult GPUNaive::run(const Job &job) {
 
 std::string GPUNaive::get_description() {
   return "Fixed-size world running on GPU";
-}
-
-BenchmarkResult CPUOptimized::run(const Job &job) {
-  // TODO:
-  BenchmarkResult result(0.0, 0, ca::World());
-  return result;
-}
-
-std::string CPUOptimized::get_description() {
-  return "Expanding, sparse world running on CPU";
-}
-
-BenchmarkResult GPUOptimized::run(const Job &job) {
-  // TODO:
-  BenchmarkResult result(0.0, 0, ca::World());
-  return result;
-}
-
-std::string GPUOptimized::get_description() {
-  return "Expanding, sparse world running on GPU";
 }

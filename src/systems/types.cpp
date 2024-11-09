@@ -1,3 +1,4 @@
+// Implementation of types.h. See types.h for more details.
 #include "types.h"
 
 namespace ca {

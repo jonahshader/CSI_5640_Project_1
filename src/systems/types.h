@@ -1,3 +1,4 @@
+// Defines some types to make it easier to describe and work with cellular automata state
 #pragma once
 
 #include <cstdint>
@@ -5,9 +6,14 @@
 #include <random>
 
 namespace ca {
+// A single cell can be represented with 1 bit, but the smallest addressable size is a byte:
 using cell_t = std::uint8_t;
+// There are 8 neighbors. Counting the number of living neighbors requires log2(8)+1=4 bits,
+// but the smallest addressable size is a byte:
 using neighbors_t = std::uint8_t;
 
+// The state of a cellular automata world at a single point in time.
+// World is fixed-size.
 struct World {
   std::vector<cell_t> state;
   int width;
@@ -34,8 +40,9 @@ struct World {
   }
 };
 
+// define comparison operator. used in validation.
 bool operator==(const World &lhs, const World &rhs);
-
+// define comparison operator. used in validation.
 bool operator!=(const World &lhs, const World &rhs);
 
 } // namespace ca
