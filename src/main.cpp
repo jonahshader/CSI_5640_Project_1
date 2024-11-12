@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
       std::cerr << "No GPU device found" << std::endl;
   }
   // preview();
-  run_benchmarks();
+  BenchmarkParams params;
+  run_benchmarks(params);
   return 0;
 }

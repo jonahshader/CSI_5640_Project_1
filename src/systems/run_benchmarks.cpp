@@ -11,7 +11,13 @@
 
 
 
-std::vector<BenchmarkResult> run_benchmarks(int width_height, int num_jobs, int iterations, unsigned long seed) {
+std::vector<BenchmarkResult> run_benchmarks(BenchmarkParams params) {
+  // extract params
+  auto width_height = params.width_height;
+  auto num_jobs = params.num_jobs;
+  auto iterations = params.iterations;
+  auto seed = params.seed;
+  
   // create random generator with constant seed
   std::mt19937 gen(seed);
 
