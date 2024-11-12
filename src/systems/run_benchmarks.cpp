@@ -9,28 +9,23 @@
 #include "benchmark.h"
 #include "types.h"
 
-// default parameters
-constexpr int WIDTH = 1 << 10;
-constexpr int HEIGHT = 1 << 10;
-constexpr int NUM_JOBS = 1 << 3;
-constexpr int ITERATIONS = 1 << 9;
-constexpr unsigned long SEED = 0;
 
-void run_benchmarks() {
+
+std::vector<BenchmarkResult> run_benchmarks(int width_height, int num_jobs, int iterations, unsigned long seed) {
   // create random generator with constant seed
-  std::mt19937 gen(SEED);
+  std::mt19937 gen(seed);
 
   // create the jobs
   std::cout << "Initializing jobs..." << std::endl;
   std::vector<Job> jobs;
-  std::vector<std::vector<BenchmarkResult>> job_results;
-  for (int i = 0; i < NUM_JOBS; ++i) {
+  // std::vector<std::vector<JobResult>> job_results;
+  std::vector<BenchmarkResult> benchmark_results;
+  for (int i = 0; i < num_jobs; ++i) {
     // each job gets a random initial state with the specified dimensions
-    ca::World initial_state(WIDTH, HEIGHT, gen);
+    ca::World initial_state(width_height, width_height, gen);
     jobs.emplace_back(
-        initial_state, ITERATIONS,
+        initial_state, iterations,
         "Randomlized world. TODO: string interpolate in the WIDTH, HEIGHT, iterations...");
-    job_results.push_back(std::vector<BenchmarkResult>());
   }
 
   // create instances of the benchmarks
@@ -39,6 +34,11 @@ void run_benchmarks() {
   benchmarks.push_back(std::make_unique<GPUNaive>());
   benchmarks.push_back(std::make_unique<CPUNaive>());
 
+  // create benchmark results
+  for (auto& benchmark : benchmarks) {
+    BenchmarkResult r(std::vector<JobResult>(), benchmark->get_description());
+    benchmark_results.push_back(r);
+  }
 
   // run the benchmarks
   std::cout << "Running benchmarks..." << std::endl;
@@ -46,7 +46,7 @@ void run_benchmarks() {
   for (int i = 0; i < benchmarks.size(); ++i) {
     // grab the current benchmark and results instance
     auto &benchmark = *benchmarks[i];
-    auto &results = job_results[i];
+    auto &results = benchmark_results[i].results;
 
     // for each job,
     for (int j = 0; j < jobs.size(); ++j) {
@@ -78,8 +78,8 @@ void run_benchmarks() {
   // iterate over benchmarks
   for (int i = 1; i < benchmarks.size(); ++i) {
     // grab neighboring benchmarks
-    auto &results1 = job_results[i - 1];
-    auto &results2 = job_results[i];
+    auto &results1 = benchmark_results[i - 1].results;
+    auto &results2 = benchmark_results[i].results;
     // iterate through the results
     for (int result_index = 0; result_index < results1.size(); ++result_index) {
       // compare neighboring results.
@@ -98,4 +98,6 @@ void run_benchmarks() {
   if (results_match) {
     std::cout << "All results match across benchmarks!" << std::endl;
   }
+
+  return job_results;
 }

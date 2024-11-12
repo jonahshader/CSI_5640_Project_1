@@ -16,13 +16,19 @@ struct Job {
   std::string description;
 };
 
-// After a job is ran through a benchmark, a BenchmarkResult is returned
+// After a job is ran through a benchmark, a JobResult is returned
 // which contains some useful metrics and the final state.
-struct BenchmarkResult {
+struct JobResult {
   double duration{0};
   unsigned long memory_required{0};
   ca::World final_state;
 };
+
+// The results for multiple runs from a benchmark 
+struct BenchmarkResult {
+  std::vector<JobResult> results{};
+  std::string description;
+}
 
 // Interface describing a benchmark. Implemented by CPUNaive and GPUNaive
 class Benchmark {
@@ -30,8 +36,8 @@ public:
   virtual ~Benchmark() {};
 
   // Execute the benchmark on the specified job, returning results
-  // as a BenchmarkResult instance.
-  virtual BenchmarkResult run(const Job &job) = 0;
+  // as a JobResult instance.
+  virtual JobResult run(const Job &job) = 0;
   // Returns a description of this benchmark.
   virtual std::string get_description() = 0;
 };
@@ -39,12 +45,12 @@ public:
 // CPU implementation of Conway's Game of Life on a fixed-size grid
 class CPUNaive : public Benchmark {
 public:
-  BenchmarkResult run(const Job &job) override;
+  JobResult run(const Job &job) override;
   std::string get_description() override;
 };
 // GPU implementation of Conway's Game of Life on a fixed-size grid (using openacc)
 class GPUNaive : public Benchmark {
 public:
-  BenchmarkResult run(const Job &job) override;
+  JobResult run(const Job &job) override;
   std::string get_description() override;
 };

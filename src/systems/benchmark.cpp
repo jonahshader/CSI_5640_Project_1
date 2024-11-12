@@ -7,7 +7,7 @@
 #include "update_state.h"
 
 
-BenchmarkResult CPUNaive::run(const Job &job) {
+JobResult CPUNaive::run(const Job &job) {
   // copy initial state
   ca::World read = job.initial_state;
   ca::World write = job.initial_state;
@@ -23,7 +23,7 @@ BenchmarkResult CPUNaive::run(const Job &job) {
   auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
   unsigned long mem_size = read.get_mem_size() + write.get_mem_size();
 
-  BenchmarkResult result(duration.count(), mem_size, read);
+  JobResult result(duration.count(), mem_size, read);
   return result;
 }
 
@@ -31,7 +31,7 @@ std::string CPUNaive::get_description() {
   return "Fixed-size world running on CPU";
 }
 
-BenchmarkResult GPUNaive::run(const Job &job) {
+JobResult GPUNaive::run(const Job &job) {
   // allocate memory (on the host) for our two cell arrays
   auto width = job.initial_state.width;
   auto height = job.initial_state.height;
@@ -97,7 +97,7 @@ BenchmarkResult GPUNaive::run(const Job &job) {
   final_state.state = std::vector<ca::cell_t>(result_cells, result_cells + width * height);
 
   // build result instance
-  BenchmarkResult result(duration.count(), memory_usage, final_state);
+  JobResult result(duration.count(), memory_usage, final_state);
 
   // free buffers
   free(read_cells);
