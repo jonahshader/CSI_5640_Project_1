@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include <openacc.h>
 #include <random>
+#include <vector>
 
 #include "systems/types.h"
 #include "systems/render_state.h"
@@ -61,7 +62,38 @@ int main(int argc, char *argv[]) {
       std::cerr << "No GPU device found" << std::endl;
   }
   // preview();
-  BenchmarkParams params;
-  run_benchmarks(params);
+  // BenchmarkParams params;
+  // run_benchmarks(params);
+
+
+  std::vector<BenchmarkParams> params_vec;
+  std::vector<BenchmarkResult> results_vec;
+  constexpr int RUNS = 1 << 3;
+  // explore width_height parameter
+  std::cout << "Exploring various world sizes..." << std::endl;
+  for (int i = 0; i < RUNS; ++i) {
+    BenchmarkParams params;
+    params.iterations >>= 3; // shorten iterations because we will do multiple runs
+    params.width_height >>= (i-1); // step through the width_height param, powers of 2
+    params.num_jobs = 1 << 2;
+    results_vec.push_back(run_benchmarks(params));
+    params_vec.push_back(params);
+  }
+
+  write_benchmark_json(params_vec, results_vec, "change_width_height.json");
+  params_vec.clear();
+  results_vec.clear();
+
+  // explore the iterations parameter
+  std::cout << "Exploring various iterations..." << std::endl;
+  for (int i = 0; i < 64; ++i) {
+    BenchmarkParams params;
+    params.iterations = i + 1;
+    params.num_jobs = 1 << 2;
+    results_vec.push_back(run_benchmarks(params));
+    params_vec.push_back(params);
+  }
+
+  write_benchmark_json(params_vec, results_vec, "change_iters.json");
   return 0;
 }
