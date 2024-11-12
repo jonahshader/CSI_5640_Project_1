@@ -17,7 +17,18 @@ struct BenchmarkParams {
     int width_height{WIDTH_HEIGHT};
     int num_jobs{NUM_JOBS};
     int iterations{ITERATIONS};
-    unsigned long seed(SEED);
+    unsigned long seed{SEED};
+
+    std::string to_json() const {
+        std::stringstream ss;
+        ss << "{";
+        ss << "\"width_height\": " << width_height << ",";
+        ss << "\"num_jobs\": " << num_jobs << ",";
+        ss << "\"iterations\": " << iterations << ",";
+        ss << "\"seed\": " << seed;
+        ss << "}";
+        return ss.str();
+    }
 };
 
 // Runs all benchmarks

@@ -52,8 +52,8 @@ FetchContent_MakeAvailable(SDL2)
 # TODO: imgui?
 
 add_executable(cellular_automata src/main.cpp
-  src/systems/csv.cpp
-  src/systems/csv.h
+  src/systems/json.cpp
+  src/systems/json.h
   src/systems/render_state.cpp
   src/systems/render_state.h
   src/systems/types.cpp

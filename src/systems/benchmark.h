@@ -7,6 +7,7 @@
 #include <string>
 
 #include "types.h"
+#include "json_helper.h"
 
 // A Job describes the work that is to be done by a Benchmark.
 // It is passed into the benchmark's run method.
@@ -21,14 +22,35 @@ struct Job {
 struct JobResult {
   double duration{0};
   unsigned long memory_required{0};
-  ca::World final_state;
+
+  std::string to_json() const {
+    std::stringstream ss;
+    ss << "{";
+    ss << "\"duration\": " << std::fixed << std::setprecision(6) << duration << ",";
+    ss << "\"memory_required\": " << memory_required;
+    ss << "}";
+    return ss.str();
+  }
 };
 
 // The results for multiple runs from a benchmark 
 struct BenchmarkResult {
   std::vector<JobResult> results{};
   std::string description;
-}
+
+  std::string to_json() const {
+    std::stringstream ss;
+    ss << "{";
+    ss << "\"description\": \"" << escape_json_string(description) << "\",";
+    ss << "\"results\": [";
+    for (size_t i = 0; i < results.size(); ++i) {
+        if (i > 0) ss << ",";
+        ss << results[i].to_json();
+    }
+    ss << "]}";
+    return ss.str();
+  }
+};
 
 // Interface describing a benchmark. Implemented by CPUNaive and GPUNaive
 class Benchmark {
