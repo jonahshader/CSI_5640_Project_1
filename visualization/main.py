@@ -3,120 +3,184 @@ import matplotlib.pyplot as plt
 import numpy as np
 from typing import Literal
 from pathlib import Path
+import argparse
+from matplotlib.ticker import ScalarFormatter, FuncFormatter
+
+def calculate_cells_updated(params):
+    """Calculate total cells updated for a given parameter set."""
+    return params['width_height'] * params['width_height'] * params['iterations']
+
+def format_number(x, p):
+    """Format numbers in full or scientific notation."""
+    if x == 0:
+        return '0'
+    if abs(x) < 1e-3 or abs(x) > 1e5:
+        return f'{x:.2e}'
+    return f'{x:,.2f}'
+
+class CustomScalarFormatter(ScalarFormatter):
+    """Custom formatter that keeps scientific notation per-tick."""
+    def _set_format(self):
+        self.format = '%1.2e'
+
+def create_plots(
+    x_values: np.ndarray,
+    duration_stats: list,
+    params_list: list,
+    benchmark_sets: list,
+    sweep_type: str,
+    output_dir: Path,
+    base_filename: str,
+    headless: bool = False,
+    full_numbers: bool = False
+) -> None:
+    """
+    Create both duration and efficiency plots, in both linear and log scales.
+    """
+    colors = ['blue', 'red', 'green', 'purple', 'orange']
+    markers = ['o', 's', '^', 'D', 'v']
+    
+    # Create plots for both metrics (duration/efficiency) and both scales (linear/log)
+    for plot_type in ['duration', 'efficiency']:
+        for scale in ['linear', 'log']:
+            plt.figure(figsize=(12, 8))
+            
+            for type_idx in range(len(duration_stats)):
+                type_stats = duration_stats[type_idx]
+                
+                if plot_type == 'duration':
+                    y_values = np.array([stat[0] for stat in type_stats])
+                    yerr = np.array([stat[1] for stat in type_stats])
+                    ylabel = 'Average Duration (seconds)'
+                else:  # efficiency
+                    cells_updated = np.array([calculate_cells_updated(params) 
+                                            for params in params_list])
+                    durations = np.array([stat[0] for stat in type_stats])
+                    y_values = cells_updated / durations / 1e6
+                    yerr = y_values * np.array([stat[1]/stat[0] for stat in type_stats])
+                    ylabel = 'Efficiency (million cells/second)'
+                
+                benchmark_type = benchmark_sets[0]['benchmark_types'][type_idx]
+                label = f"Type: {benchmark_type['description']}"
+                
+                color = colors[type_idx % len(colors)]
+                marker = markers[type_idx % len(markers)]
+                
+                plt.errorbar(x_values, y_values, yerr=yerr,
+                            fmt=f'{marker}-', capsize=5, capthick=1, elinewidth=1,
+                            color=color, markersize=8, linewidth=2, label=label)
+            
+            plt.xlabel(sweep_type.replace('_', ' ').title())
+            plt.ylabel(ylabel)
+            plt.title(f'Benchmark {plot_type.title()} vs {sweep_type.title()} ({scale} scale)')
+            
+            plt.grid(True, linestyle='--', alpha=0.7)
+            
+            # Set scale for axes
+            if scale == 'log':
+                plt.xscale('log')
+                plt.yscale('log')
+            
+            # Configure number formatting
+            if full_numbers:
+                formatter = FuncFormatter(format_number)
+                plt.gca().xaxis.set_major_formatter(formatter)
+                plt.gca().yaxis.set_major_formatter(formatter)
+            else:
+                # Use per-tick scientific notation
+                plt.gca().xaxis.set_major_formatter(CustomScalarFormatter())
+                plt.gca().yaxis.set_major_formatter(CustomScalarFormatter())
+            
+            if min(x_values) >= 0:
+                plt.xlim(left=0)
+            
+            plt.legend()
+            plt.tight_layout()
+            
+            # Save plot
+            output_path = output_dir / f"{base_filename}_{plot_type}_{scale}.png"
+            plt.savefig(output_path, dpi=300, bbox_inches='tight')
+            
+            if not headless:
+                plt.show()
+            plt.close()
 
 def load_and_visualize(
     filepath: str | Path,
-    x_axis: Literal["width_height", "iterations"],
-    output_file: str | None = None
+    headless: bool = False,
+    output_dir: str | Path | None = None,
+    full_numbers: bool = False
 ) -> None:
     """
-    Load benchmark results from a JSON file and create a visualization.
-    
-    Args:
-        filepath: Path to the JSON file
-        x_axis: Which parameter to plot on x-axis ('width_height' or 'iterations')
-        output_file: If provided, save plot to this file instead of displaying
+    Load benchmark results from a JSON file and create visualizations.
     """
-    # Load and parse JSON
     with open(filepath, 'r') as f:
         data = json.load(f)
     
-    # Extract x values and durations
+    sweep_type = data['sweep_type']
+    benchmark_sets = data['benchmark_sets']
+    
+    if not benchmark_sets:
+        raise ValueError("No benchmark sets found in the data")
+    
+    # Extract data
     x_values = []
-    durations = []
+    params_list = []
+    num_benchmark_types = len(benchmark_sets[0]['benchmark_types'])
+    duration_stats = [[] for _ in range(num_benchmark_types)]
     
-    for benchmark in data['benchmarks']:
-        params = benchmark['parameters']
-        x_value = params[x_axis]
+    for benchmark_set in benchmark_sets:
+        params = benchmark_set['parameters']
+        params_list.append(params)
+        x_values.append(params[sweep_type])
         
-        # Calculate average duration across all jobs in this benchmark
-        job_durations = [job['duration'] for job in benchmark['results']['results']]
-        avg_duration = np.mean(job_durations)
-        std_duration = np.std(job_durations)
-        
-        x_values.append(x_value)
-        durations.append((avg_duration, std_duration))
+        for type_idx, benchmark_type in enumerate(benchmark_set['benchmark_types']):
+            job_durations = [job['duration'] for job in benchmark_type['results']]
+            avg_duration = np.mean(job_durations)
+            std_duration = np.std(job_durations)
+            duration_stats[type_idx].append((avg_duration, std_duration))
     
-    # Sort data points by x value
-    sorted_data = sorted(zip(x_values, durations))
-    x_values = [x for x, _ in sorted_data]
-    avg_durations = [d[0] for _, d in sorted_data]
-    std_durations = [d[1] for _, d in sorted_data]
-    
-    # Create the visualization
-    plt.figure(figsize=(10, 6))
-    
-    # Plot average duration with error bars
-    plt.errorbar(x_values, avg_durations, yerr=std_durations, 
-                fmt='o-', capsize=5, capthick=1, elinewidth=1,
-                color='blue', markersize=8, linewidth=2)
-    
-    # Add labels and title
-    plt.xlabel(x_axis.replace('_', ' ').title())
-    plt.ylabel('Average Duration (seconds)')
-    plt.title(f'Benchmark Performance: Duration vs {x_axis.replace("_", " ").title()}')
-    
-    # Add grid
-    plt.grid(True, linestyle='--', alpha=0.7)
-    
-    # Format y-axis with appropriate scale
-    plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-    
-    # Ensure x-axis starts at 0 if all values are positive
-    if min(x_values) >= 0:
-        plt.xlim(left=0)
-    
-    # Add error bar explanation to legend
-    plt.plot([], [], 'b-', label='Average Duration')
-    plt.plot([], [], 'b|', label='Standard Deviation')
-    plt.legend()
-    
-    # Tight layout to prevent label clipping
-    plt.tight_layout()
-    
-    # Save or display the plot
-    if output_file:
-        plt.savefig(output_file, dpi=300, bbox_inches='tight')
-        plt.close()
+    # Create output directory if needed
+    if output_dir is None:
+        output_dir = Path(filepath).parent
     else:
-        plt.show()
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Sort all data by x values
+    sorted_indices = np.argsort(x_values)
+    x_values = np.array(x_values)[sorted_indices]
+    params_list = [params_list[i] for i in sorted_indices]
+    duration_stats = [[stats[i] for i in sorted_indices] for stats in duration_stats]
+    
+    # Convert width_height to size (area)
+    if sweep_type == 'width_height':
+        sweep_type = 'size'
+        x_values = x_values * x_values
+    
+    # Create plots
+    base_filename = Path(filepath).stem
+    create_plots(x_values, duration_stats, params_list, benchmark_sets,
+                sweep_type, output_dir, base_filename, headless, full_numbers)
 
-def print_summary_statistics(filepath: str | Path) -> None:
-    """
-    Print summary statistics for the benchmark data.
+def main():
+    parser = argparse.ArgumentParser(description='Visualize benchmark results')
+    parser.add_argument('files', nargs='+', help='JSON files to process')
+    parser.add_argument('--headless', action='store_true', help='Run without displaying plots')
+    parser.add_argument('--output-dir', type=str, help='Directory to save plots to')
+    parser.add_argument('--stats', action='store_true', help='Print summary statistics')
+    parser.add_argument('--full-numbers', action='store_true', 
+                       help='Display full numbers instead of scientific notation')
     
-    Args:
-        filepath: Path to the JSON file
-    """
-    with open(filepath, 'r') as f:
-        data = json.load(f)
+    args = parser.parse_args()
     
-    print("\nBenchmark Summary Statistics:")
-    print("-" * 50)
-    
-    for i, benchmark in enumerate(data['benchmarks'], 1):
-        params = benchmark['parameters']
-        job_durations = [job['duration'] for job in benchmark['results']['results']]
-        
-        print(f"\nBenchmark #{i}")
-        print(f"Parameters:")
-        for key, value in params.items():
-            print(f"  {key}: {value}")
-        print(f"Results:")
-        print(f"  Number of jobs: {len(job_durations)}")
-        print(f"  Average duration: {np.mean(job_durations):.6f} seconds")
-        print(f"  Std deviation: {np.std(job_durations):.6f} seconds")
-        print(f"  Min duration: {min(job_durations):.6f} seconds")
-        print(f"  Max duration: {max(job_durations):.6f} seconds")
+    for filepath in args.files:
+        try:
+            load_and_visualize(filepath, args.headless, args.output_dir, args.full_numbers)
+            if args.stats:
+                print_summary_statistics(filepath)
+        except Exception as e:
+            print(f"Error processing {filepath}: {e}")
 
-# Example usage
 if __name__ == "__main__":
-    # Example usage of the visualization function
-    # Load and visualize width_height vs duration
-    load_and_visualize("benchmark_results.json", "width_height", "width_height_plot.png")
-    
-    # Load and visualize iterations vs duration
-    load_and_visualize("benchmark_results.json", "iterations", "iterations_plot.png")
-    
-    # Print summary statistics
-    print_summary_statistics("benchmark_results.json")
+    main()

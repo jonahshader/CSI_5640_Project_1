@@ -10,8 +10,7 @@
 #include "types.h"
 
 
-
-std::vector<BenchmarkResult> run_benchmarks(BenchmarkParams params) {
+ParameterBenchmarkSet run_benchmarks(BenchmarkParams params) {
   // extract params
   auto width_height = params.width_height;
   auto num_jobs = params.num_jobs;
@@ -105,5 +104,7 @@ std::vector<BenchmarkResult> run_benchmarks(BenchmarkParams params) {
     std::cout << "All results match across benchmarks!" << std::endl;
   }
 
-  return job_results;
+  // TODO: std::move?
+  ParameterBenchmarkSet bset(params, benchmark_results);
+  return bset;
 }
