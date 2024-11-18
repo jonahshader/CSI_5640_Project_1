@@ -25,6 +25,11 @@ echo "Installing build essentials..."
 sudo apt-get install -y build-essential
 check_status "Build essentials installation"
 
+# Install CMake
+echo "Installing CMake..."
+sudo apt-get install -y cmake
+check_status "CMake installation"
+
 # Install specific GCC version and OpenACC support packages
 echo "Installing GCC/G++ and OpenACC support..."
 sudo apt-get install -y gcc g++ gcc-offload-nvptx nvidia-cuda-toolkit
@@ -73,6 +78,7 @@ g++ --version
 nvcc --version
 nvidia-smi
 python3 --version
+cmake --version
 
 echo -e "\nChecking OpenACC offloading support..."
 gcc -fopenacc -foffload=nvptx-none -cpp -dM -E - < /dev/null | grep -i openacc
@@ -86,6 +92,10 @@ echo "1. Navigate to the project directory"
 echo "2. Run 'make' for release build"
 echo "   or 'make debug' for debug build"
 echo "   or 'make clean' to clean build files"
+echo "3. Or use CMake:"
+echo "   mkdir build && cd build"
+echo "   cmake .."
+echo "   make"
 
 echo -e "\nTo use the visualization component:"
 echo "1. Activate the virtual environment:"
