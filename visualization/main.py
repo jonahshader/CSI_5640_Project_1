@@ -44,7 +44,9 @@ def create_plots(
     # TODO: should probably also create separate plots with one benchmark each instead of 2
     for plot_type in ['duration', 'efficiency']:
         for scale in ['linear', 'log']:
-            plt.figure(figsize=(12, 8)) # TODO: plot is too big, make it smaller
+            plot_scale_factor = (3.0/5.0)
+            plt.figure(figsize=(12 * plot_scale_factor,
+                                8 * plot_scale_factor))
 
             for type_idx in range(len(duration_stats)):
                 type_stats = duration_stats[type_idx]
@@ -62,7 +64,12 @@ def create_plots(
                     ylabel = 'Efficiency (million cells/second)'
 
                 benchmark_type = benchmark_sets[0]['benchmark_types'][type_idx]
-                label = f"Type: {benchmark_type['description']}"
+                label = benchmark_type['description']
+                if ('CPU' in label):
+                    label = 'CPU'
+                else:
+                    label = 'GPU'
+
 
                 color = colors[type_idx % len(colors)]
                 marker = markers[type_idx % len(markers)]
