@@ -1,3 +1,4 @@
+// render_state.cpp: Defines a helper function for rendering the state of the cellular automaton using SDL2.
 #include "render_state.h"
 
 #include <SDL.h>
