@@ -4,6 +4,7 @@
     "ios": "cpp",
     "deque": "cpp",
     "string": "cpp",
-    "__split_buffer": "cpp"
+    "__split_buffer": "cpp",
+    "cstdint": "cpp"
   }
 }

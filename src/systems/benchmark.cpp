@@ -1,4 +1,5 @@
-// Implementation of benchmark.h. See benchmark.h for more details.
+// benchmark.h contains the definitions of some structs and classes used for describing benchmarks
+// generically, so that multiple benchmarks can share the same interface.
 #include "benchmark.h"
 
 #include <chrono>

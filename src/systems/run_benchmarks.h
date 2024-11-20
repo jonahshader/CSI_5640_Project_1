@@ -1,4 +1,7 @@
-// High-level benchmarking functions
+// Framework for executing and comparing different cellular automata implementations
+// (GPU and CPU). Manages multiple benchmark runs with randomized initial states,
+// collects performance metrics (timing, memory usage), and validates consistency
+// of results across implementations.
 #pragma once
 
 #include <vector>
@@ -65,12 +68,12 @@ struct ParameterSweep {
         file << "{\n";
         file << "  \"sweep_type\": \"" << escape_json_string(sweep_type) << "\",\n";
         file << "  \"benchmark_sets\": [";
-        
+
         for (size_t i = 0; i < benchmark_sets.size(); ++i) {
             if (i > 0) file << ",";
             file << "\n    " << benchmark_sets[i].to_json();
         }
-        
+
         file << "\n  ]\n}\n";
         file.close();
     }

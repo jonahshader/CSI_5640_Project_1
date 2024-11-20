@@ -1,4 +1,4 @@
-// Implementation of types.h. See types.h for more details.
+// Defines some types to make it easier to describe and work with cellular automata state
 #include "types.h"
 
 namespace ca {

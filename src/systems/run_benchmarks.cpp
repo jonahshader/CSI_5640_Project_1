@@ -1,4 +1,7 @@
-// Implementation of run_benchmarks.h. See run_benchmarks.h for more details.
+// Framework for executing and comparing different cellular automata implementations
+// (GPU and CPU). Manages multiple benchmark runs with randomized initial states,
+// collects performance metrics (timing, memory usage), and validates consistency
+// of results across implementations.
 #include "run_benchmarks.h"
 
 #include <iostream>
@@ -16,7 +19,7 @@ ParameterBenchmarkSet run_benchmarks(BenchmarkParams params) {
   auto num_jobs = params.num_jobs;
   auto iterations = params.iterations;
   auto seed = params.seed;
-  
+
   // create random generator with constant seed
   std::mt19937 gen(seed);
 
