@@ -1,3 +1,5 @@
+// Defines the CPU implementation of conway's game of life.
+// Defined here because it is shared between the benchmarking and the SDL2 preview code.
 #include "update_state.h"
 
 #include "types.h"

@@ -1,3 +1,4 @@
+// Declare escape_json_string helper function. In separate file to avoid circular includes.
 #include "json_helper.h"
 
 #include <fstream>
