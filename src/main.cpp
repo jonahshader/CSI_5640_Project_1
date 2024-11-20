@@ -29,10 +29,13 @@
 // only define visualizations if VIS_SDL2 is defined
 #ifdef VIS_SDL2
 
+// define some constants for the SDL2 preview
 constexpr int SCREEN_WIDTH = 800;
 constexpr int SCREEN_HEIGHT = 600;
 constexpr int CELL_SIZE = 4;
 
+// this function will run a simple SDL2 preview of the cellular automaton.
+// only used for initial debugging and visualization. this is not used in the benchmarking.
 void preview() {
   // test render_state
 
@@ -85,13 +88,14 @@ void sweep_params() {
 
   // Explore width_height parameter
   std::cout << "Exploring various world sizes..." << std::endl;
-
+  // try 32 different sizes
   for (int i = 0; i < 32; ++i) {
+    // set up the parameters for the benchmark
     BenchmarkParams params;
     params.iterations >>= 3;  // shorten iterations because we will do multiple runs
     params.width_height = (i + 1) * 128;  // step through the width_height param
     params.num_jobs = 1 << 2;
-
+    // run the benchmarks for this parameter set
     benchmark_sets.push_back(run_benchmarks(params));
   }
 
@@ -103,11 +107,13 @@ void sweep_params() {
 
   // Explore iterations parameter
   std::cout << "Exploring various iterations..." << std::endl;
+  // try 32 different sizes (increment by 2)
   for (int i = 2; i <= 64; i += 2) {
+    // set up the parameters for the benchmark
     BenchmarkParams params;
     params.iterations = i;
     params.num_jobs = 1 << 2;
-
+    // run the benchmarks for this parameter set
     benchmark_sets.push_back(run_benchmarks(params));
   }
 
